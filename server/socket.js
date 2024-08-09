@@ -15,7 +15,7 @@ const messageModal = require("./models/messageModal");
 
 let onlineUsers = [];
 let users = {};
-
+console.log(onlineUsers)
 // Add a user to the online users list
 const addUser = (userId, socketId) => {
   onlineUsers = onlineUsers.filter((user) => user.userId !== userId);

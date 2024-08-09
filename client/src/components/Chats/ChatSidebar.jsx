@@ -44,14 +44,14 @@ const ChatSidebar = () => {
 
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        Popup("error", "User not authenticated");
-        return;
-      }
-      console.log(api)
+        const token = localStorage.getItem("token");
+        if (!token) {
+            Popup("error", "User not authenticated");
+            return;
+          }
       const res = await api.get("/auth");
       const filteredUsers = res?.data?.filter((user) => logUser?._id !== user?._id);
+      console.log(res.data)
       setUsers(filteredUsers);
     } catch (err) {
       console.log(err);
@@ -79,7 +79,6 @@ const ChatSidebar = () => {
     socketRef.current = io('https://mern-chat-application-a8lw.onrender.com',{
       transports:["websocket","polling","flashsocket"]
     });
-    fetchUsers();
     socketRef.current.on("online-users", (users) => {
       dispatch(setOnlineUsers(users));
     });
@@ -100,6 +99,7 @@ const ChatSidebar = () => {
   }, [currentUser]);
   useEffect(() => {
     if (logUser) {
+      fetchUsers()
       fetchRoomIds();
     }
   }, [logUser]);

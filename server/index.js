@@ -19,10 +19,10 @@ const __dirname1 = path.resolve();
 app.use(express.json());
 require("./database/db")();
 
-app.use(express.static(path.join(__dirname1, "/client/dist")));
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname1, "client", "dist", "index.html"));
-});
+// app.use(express.static(path.join(__dirname1, "/client/dist")));
+// app.get("*", (req, res) => {
+//   res.sendFile(path.join(__dirname1, "client", "dist", "index.html"));
+// });
 app.use("/auth", userRouter);
 app.use("/chat", chatRouter);
 

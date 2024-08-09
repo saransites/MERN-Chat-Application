@@ -25,24 +25,26 @@ const ChatBox = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [file, setFile] = useState(null);
   const [fileType, setFileType] = useState("");
-  const messageRef = useRef(null)
-  const inputRef = useRef(null)
-  const socketRef = useRef(null);  // To store the socket instance
+  const messageRef = useRef(null);
+  const inputRef = useRef(null);
+  const socketRef = useRef(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Initialize the socket connection
-  socketRef.current = io('https://mern-chat-application-a8lw.onrender.com',{
-    transports:["websocket","polling","flashsocket"]
-  });
-    
+    socketRef.current = io('https://mern-chat-application-a8lw.onrender.com', {
+      transports: ["websocket", "polling", "flashsocket"],
+    });
+
     const socket = socketRef.current;
-    // Requesting messages for the room
+
     if (user && currentUser) {
       socket.emit("get-messages", roomId);
     }
 
     socket.on("receive-messages", (msg) => {
       setMessages(msg);
+      setLoading(false);
     });
 
     socket.on("receive-message", (newMessage) => {
@@ -59,16 +61,13 @@ const ChatBox = () => {
 
     // Cleanup on component unmount
     return () => {
-      socket.off("receive-messages");
-      socket.off("receive-message");
-      socket.off("online-users");
-      socket.off("message-sent");
+      socket.disconnect();
     };
-  }, [roomId, currentUser, user, dispatch,messageRef.current]);
+  }, [roomId, currentUser, user, dispatch]);
 
   useEffect(() => {
     messageRef.current?.scrollIntoView({ behavior: "smooth" });
-    inputRef.current?.focus()
+    inputRef.current?.focus();
   }, [messages]);
 
   const handleChange = (e) => {
@@ -120,9 +119,6 @@ const ChatBox = () => {
       status: "sent",
       isRead: false,
     };
-    socketRef.current = io('https://mern-chat-application-a8lw.onrender.com',{
-      transports:["websocket","polling","flashsocket"]
-    });  
 
     try {
       socketRef.current.emit("send-message", data);
@@ -247,6 +243,11 @@ const ChatBox = () => {
         return null;
     }
   };
+  if(loading){
+    return <div className="absolute inset-0 bg-[rgba(255,255,255,0.1)] flex items-center justify-center h-full">
+      <h1 className="text-white text-2xl">loading...</h1>
+    </div>
+  }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-[250px_1fr] h-screen">
