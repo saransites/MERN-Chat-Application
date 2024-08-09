@@ -21,6 +21,7 @@ import {
   FaCircle,
   FaRegCircle,
 } from "react-icons/fa";
+import axios from "axios";
 
 const placeholder =
   "https://www.lightsong.net/wp-content/uploads/2020/12/blank-profile-circle.png";
@@ -49,7 +50,7 @@ const ChatSidebar = () => {
             Popup("error", "User not authenticated");
             return;
           }
-      const res = await api.get("https://mern-chat-application-a8lw.onrender.com/auth");
+      const res = await axios.get("https://mern-chat-application-a8lw.onrender.com/auth");
       const filteredUsers = res?.data?.filter((user) => logUser?._id !== user?._id);
       console.log(res.data)
       setUsers(filteredUsers);
