@@ -31,7 +31,7 @@ const ChatBox = () => {
 
   useEffect(() => {
     // Initialize the socket connection
-  socketRef.current = io(`${import.meta.env.VITE_ENDPOINT}`,{
+  socketRef.current = io(import.meta.env.VITE_ENDPOINT,{
     transports:["websocket","polling","flashsocket"]
   });
     
@@ -120,6 +120,9 @@ const ChatBox = () => {
       status: "sent",
       isRead: false,
     };
+    socketRef.current = io(import.meta.env.VITE_ENDPOINT,{
+      transports:["websocket","polling","flashsocket"]
+    });  
 
     try {
       socketRef.current.emit("send-message", data);

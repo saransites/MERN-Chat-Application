@@ -18,6 +18,7 @@ const Login = () => {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log(api)
     try {
       const res = await api.post("/auth/login", form);
       const user=res.data.user

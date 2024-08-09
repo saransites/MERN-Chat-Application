@@ -82,7 +82,7 @@ const UseApi = () => {
   const token = initialState.token;
 
   return axios.create({
-    baseURL: `${import.meta.env.VITE_ENDPOINT}`,
+    baseURL: import.meta.env.VITE_ENDPOINT,
     timeout: 25000,
     headers: {
       Authorization: `Bearer ${token}`,
