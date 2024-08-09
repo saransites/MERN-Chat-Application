@@ -10,7 +10,7 @@ require("dotenv").config();
 app.use(
   cors({
     origin: "*",
-    methods: "GET,HEAD,PUT,DELETE,POST",
+    methods: ["GET","HEAD","PUT","DELETE","POST"],
     credentials: true,
   })
 );

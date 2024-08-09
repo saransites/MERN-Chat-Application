@@ -49,7 +49,7 @@ const ChatSidebar = () => {
             Popup("error", "User not authenticated");
             return;
           }
-      const res = await api.get("/auth");
+      const res = await api.get("https://mern-chat-application-a8lw.onrender.com/auth");
       const filteredUsers = res?.data?.filter((user) => logUser?._id !== user?._id);
       console.log(res.data)
       setUsers(filteredUsers);
