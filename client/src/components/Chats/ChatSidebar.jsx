@@ -49,8 +49,9 @@ const ChatSidebar = () => {
         Popup("error", "User not authenticated");
         return;
       }
+      console.log(api)
       const res = await api.get("/auth");
-      const filteredUsers = res.data.filter((user) => logUser._id !== user._id);
+      const filteredUsers = res?.data?.filter((user) => logUser?._id !== user?._id);
       setUsers(filteredUsers);
     } catch (err) {
       console.log(err);
@@ -59,7 +60,7 @@ const ChatSidebar = () => {
   };
 
   const handleLogout = () => {
-    socketRef.current = io(`${import.meta.env.VITE_ENDPOINT}`,{
+    socketRef.current = io('https://mern-chat-application-a8lw.onrender.com',{
       transports:["websocket","polling","flashsocket"]
     });
     try{
@@ -75,7 +76,7 @@ const ChatSidebar = () => {
   };
 
   useEffect(() => {
-    socketRef.current = io(`${import.meta.env.VITE_ENDPOINT}`,{
+    socketRef.current = io('https://mern-chat-application-a8lw.onrender.com',{
       transports:["websocket","polling","flashsocket"]
     });
     fetchUsers();
@@ -91,7 +92,7 @@ const ChatSidebar = () => {
   const fetchRoomIds = useCallback(async () => {
     try {
       const res = await api.get("/chat/rooms");
-      setRoomIds(res.data);
+      setRoomIds(res?.data);
     } catch (err) {
       console.log(err);
       Popup("error", "Error fetching room IDs");
@@ -103,7 +104,7 @@ const ChatSidebar = () => {
     }
   }, [logUser]);
   useEffect(() => {
-    socketRef.current = io(`${import.meta.env.VITE_ENDPOINT}`,{
+    socketRef.current = io('https://mern-chat-application-a8lw.onrender.com',{
       transports:["websocket","polling","flashsocket"]
     });
     if (logUser) {

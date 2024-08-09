@@ -31,7 +31,7 @@ const ChatBox = () => {
 
   useEffect(() => {
     // Initialize the socket connection
-  socketRef.current = io(import.meta.env.VITE_ENDPOINT,{
+  socketRef.current = io('https://mern-chat-application-a8lw.onrender.com',{
     transports:["websocket","polling","flashsocket"]
   });
     
@@ -120,7 +120,7 @@ const ChatBox = () => {
       status: "sent",
       isRead: false,
     };
-    socketRef.current = io(import.meta.env.VITE_ENDPOINT,{
+    socketRef.current = io('https://mern-chat-application-a8lw.onrender.com',{
       transports:["websocket","polling","flashsocket"]
     });  
 
