@@ -9,7 +9,8 @@ require("dotenv").config();
 // Use CORS with option
 app.use(
   cors({
-    origin: "https://mern-chat-application-a8lw.onrender.com",
+    // origin: "https://mern-chat-application-a8lw.onrender.com",
+    origin:"*",
     methods: ["GET", "HEAD", "PUT", "DELETE", "POST"],
     credentials: true,
   })
@@ -17,7 +18,7 @@ app.use(
 const __dirname1 = path.resolve();
 
 app.use(express.json());
-require("./database/db")();
+const db=require("./database/db");
 
 app.use(express.static(path.join(__dirname1, "/client/dist")));
 app.get("*", (req, res) => {
@@ -27,5 +28,6 @@ app.use("/auth", userRouter);
 app.use("/chat", chatRouter);
 
 server.listen(process.env.PORT, () => {
+  db()
   console.log("server is started");
 });

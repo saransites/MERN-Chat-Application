@@ -50,7 +50,7 @@ const ChatSidebar = () => {
       Popup("error", "User not authenticated");
       return;
     }
-    const res = await axios.get("https://mern-chat-application-a8lw.onrender.com/auth",{
+    const res = await api.get("/auth",{
       headers: {
         Authorization: `Bearer ${token}`,
       },

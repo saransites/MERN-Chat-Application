@@ -6,7 +6,8 @@ const server = http.createServer(app);
 require('dotenv').config()
 const io = new Server(server, {
   cors: {
-    origin: "https://mern-chat-application-a8lw.onrender.com",
+    // origin: "https://mern-chat-application-a8lw.onrender.com",
+    origin:"*",
     methods: ["GET", "POST", "DELETE"],
     credentials: true,
   },
