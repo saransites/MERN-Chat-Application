@@ -44,21 +44,29 @@ const ChatSidebar = () => {
   };
 
   const fetchUsers = async () => {
-    try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            Popup("error", "User not authenticated");
-            return;
-          }
-      const res = await axios.get("https://mern-chat-application-a8lw.onrender.com/auth");
-      const filteredUsers = res?.data?.filter((user) => logUser?._id !== user?._id);
-      console.log(res.data)
-      setUsers(filteredUsers);
-    } catch (err) {
-      console.log(err);
-      Popup("error", "Error fetching data");
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      Popup("error", "User not authenticated");
+      return;
     }
-  };
+    const res = await axios.get("/auth");
+    // Check if res.data is an array
+    if (Array.isArray(res?.data)) {
+      const filteredUsers = res?.data?.filter(
+        (user) => logUser?._id !== user?._id
+      );
+      setUsers(filteredUsers);
+    } else {
+      console.log("Unexpected response format:", res.data);
+      Popup("error", "Unexpected response format");
+    }
+  } catch (err) {
+    console.error(err);
+    Popup("error", "Error fetching data");
+  }
+};
+
 
   const handleLogout = () => {
     socketRef.current = io('https://mern-chat-application-a8lw.onrender.com',{
