@@ -37,68 +37,66 @@ const ChatSidebar = () => {
   const [search, setSearch] = useState("");
   const [users, setUsers] = useState([]);
   const [roomIds, setRoomIds] = useState([]);
-  const socketRef=useRef(null)
+  const socketRef = useRef(null);
 
   const handleChange = (e) => {
     setSearch(e.target.value);
   };
 
   const fetchUsers = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      Popup("error", "User not authenticated");
-      return;
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        Popup("error", "User not authenticated");
+        return;
+      }
+      const res = await api.get("/auth", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      // Check if res.data is an array
+      if (Array.isArray(res?.data)) {
+        const filteredUsers = res?.data?.filter(
+          (user) => logUser?._id !== user?._id
+        );
+        setUsers(filteredUsers);
+      } else {
+        console.log("Unexpected response format:", res.data);
+        Popup("error", "Unexpected response format");
+      }
+    } catch (err) {
+      console.error(err);
+      Popup("error", "Error fetching data");
     }
-    const res = await api.get("/auth",{
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    // Check if res.data is an array
-    if (Array.isArray(res?.data)) {
-      const filteredUsers = res?.data?.filter(
-        (user) => logUser?._id !== user?._id
-      );
-      setUsers(filteredUsers);
-    } else {
-      console.log("Unexpected response format:", res.data);
-      Popup("error", "Unexpected response format");
-    }
-  } catch (err) {
-    console.error(err);
-    Popup("error", "Error fetching data");
-  }
-};
-
+  };
 
   const handleLogout = () => {
-    socketRef.current = io('https://mern-chat-application-a8lw.onrender.com',{
-      transports:["websocket","polling","flashsocket"]
+    socketRef.current = io(import.meta.env.VITE_ENDPOINT, {
+      transports: ["websocket", "polling", "flashsocket"],
     });
-    try{
+    try {
       localStorage.removeItem("user");
       localStorage.removeItem("token");
       dispatch(logout());
       socketRef.current.emit("user-logout", logUser?._id);
       navigate("/");
       window.location.reload(false);
-    }catch(err){
-      Popup('error','Something went wrong...Try again later')
+    } catch (err) {
+      Popup("error", "Something went wrong...Try again later");
     }
   };
 
   useEffect(() => {
-    socketRef.current = io('https://mern-chat-application-a8lw.onrender.com',{
-      transports:["websocket","polling","flashsocket"]
+    socketRef.current = io(import.meta.env.VITE_ENDPOINT, {
+      transports: ["websocket", "polling", "flashsocket"],
     });
     socketRef.current.on("online-users", (users) => {
       dispatch(setOnlineUsers(users));
     });
-  
 
     return () => {
-      socketRef.current.off("online-users");
+      socketRef.current.disconnect()
     };
   }, [dispatch, logUser._id, onlineUser]);
   const fetchRoomIds = useCallback(async () => {
@@ -112,13 +110,13 @@ const ChatSidebar = () => {
   }, [currentUser]);
   useEffect(() => {
     if (logUser) {
-      fetchUsers()
+      fetchUsers();
       fetchRoomIds();
     }
   }, [logUser]);
   useEffect(() => {
-    socketRef.current = io('https://mern-chat-application-a8lw.onrender.com',{
-      transports:["websocket","polling","flashsocket"]
+    socketRef.current = io(import.meta.env.VITE_ENDPOINT, {
+      transports: ["websocket", "polling", "flashsocket"],
     });
     if (logUser) {
       const data = { userId: logUser?._id, roomIds: roomIds };

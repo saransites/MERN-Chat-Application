@@ -82,7 +82,7 @@ const UseApi = () => {
   const token = initialState.token;
 
   return axios.create({
-    baseURL: 'https://mern-chat-application-a8lw.onrender.com',
+    baseURL: import.meta.env.VITE_ENDPOINT,
     timeout: 25000,
     headers: {
       Authorization: `Bearer ${token}`,
