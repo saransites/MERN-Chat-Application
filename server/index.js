@@ -14,7 +14,6 @@ app.use(
     credentials: true,
   })
 );
-
 app.use(express.json());
 const db = require("./database/db");
 const PORT = process.env.PORT || 5000
