@@ -9,8 +9,8 @@ require("dotenv").config();
 // Use CORS with option
 app.use(
   cors({
-    origin: "*",
-    methods: ["GET","HEAD","PUT","DELETE","POST"],
+    origin: "https://mern-chat-application-a8lw.onrender.com",
+    methods: ["GET", "HEAD", "PUT", "DELETE", "POST"],
     credentials: true,
   })
 );
