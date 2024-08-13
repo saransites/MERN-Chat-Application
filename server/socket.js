@@ -1,9 +1,12 @@
 const express = require("express");
 const app = express();
 const http = require("http");
-const {Server} = require("socket.io");
+const moment = require("moment");
+const { Server } = require("socket.io");
 const server = http.createServer(app);
-require('dotenv').config()
+require("dotenv").config();
+const messageModal = require("./models/messageModal");
+
 const io = new Server(server, {
   cors: {
     origin: process.env.CLIENT_URL,
@@ -11,52 +14,37 @@ const io = new Server(server, {
     credentials: true,
   },
 });
-const messageModal = require("./models/messageModal");
 
 let onlineUsers = [];
 let users = {};
-// Add a user to the online users list
+let lastSeenTimes = {};
 const addUser = (userId, socketId) => {
   onlineUsers = onlineUsers.filter((user) => user.userId !== userId);
   onlineUsers.push({ userId, socketId });
 };
 
-// Remove a user from the online users list
 const removeUser = (socketId) => {
-  onlineUsers = onlineUsers.filter((user) => user.socketId !== socketId);
+  const user = onlineUsers.find((user) => user.socketId === socketId);
+  if (user) {
+    lastSeenTimes[user.userId] = moment().format(); // Store last seen time
+    onlineUsers = onlineUsers.filter((user) => user.socketId !== socketId);
+  }
 };
 
-// Get a user from the online users list
 const getUser = (userId) => {
   return onlineUsers.find((user) => user.userId === userId);
 };
 
-// Handle socket connections
 io.on("connection", (socket) => {
   console.log("A user connected");
-
   // Handle user login
-  socket.on("user-login", async (data) => {
-    const { userId, roomIds } = data;
+  socket.on("user-login", (data) => {
+    const { userId } = data;
     addUser(userId, socket.id);
     io.emit("online-users", onlineUsers);
-
-    try {
-      let unreadMessages = [];
-      for (const room of roomIds) {
-        const roomUnreadMessages = await messageModal.find({
-          roomId: room,
-          isRead: false,
-        });
-        unreadMessages = unreadMessages.concat(roomUnreadMessages);
-      }
-      socket.emit("unread-messages", unreadMessages);
-    } catch (error) {
-      console.error("Error fetching unread messages:", error);
-    }
   });
 
-  // Handle fetching messages
+  // Fetch messages for a room
   socket.on("get-messages", async (roomId) => {
     try {
       const messages = await messageModal
@@ -68,17 +56,15 @@ io.on("connection", (socket) => {
     }
   });
 
-  // When a user joins a room
-  socket.on("joinRoom", async (data) => {
-    const { roomId, userId } = data;
-    socket.join(roomId); // Join the user to the specific room
-    users[userId] = roomId; // Store the user's room
+  // Join a room
+  socket.on("joinRoom", async ({ roomId, userId }) => {
+    socket.join(roomId);
+    users[userId] = roomId;
     console.log(`${userId} joined room ${roomId}`);
 
-    // Update message status to "seen" for this user
     try {
       await messageModal.updateMany(
-        { roomId, receiverId: userId, status: "delivered" },
+        { roomId, receiverId: userId, status: { $in: ["sent", "delivered"] } },
         { status: "seen" }
       );
       const seenMessages = await messageModal.find({
@@ -90,8 +76,14 @@ io.on("connection", (socket) => {
       console.error("Error updating message status to seen:", error);
     }
 
-    // Notify other users in the room that someone has joined
-    socket.to(roomId).emit("userJoined", userId);
+    socket.to(roomId).emit("userJoined", { roomId, userId });
+  });
+  // Handle leaving a room
+  socket.on("leaveRoom", ({ roomId, userId }) => {
+    socket.leave(roomId);
+    delete users[userId];
+    console.log(`${userId} left room ${roomId}`);
+    socket.to(roomId).emit("userLeft", { roomId, userId });
   });
 
   // Handle sending a message
@@ -100,18 +92,18 @@ io.on("connection", (socket) => {
     try {
       const message = new messageModal(data);
       await message.save();
+
       const receiver = getUser(receiverId);
 
       if (receiver) {
         const updatedMessage = await messageModal.findByIdAndUpdate(
           message._id,
-          { status: "delivered" }, // Initially set to "delivered"
+          { status: "delivered" },
           { new: true }
         );
         io.to(receiver.socketId).emit("receive-message", updatedMessage);
-
-        // Check if the receiver is currently viewing the room
-        if (users[receiverId] == roomId) {
+        // Update message status to "seen" if the receiver is in the room
+        if (users[receiverId] === roomId) {
           const seenMessage = await messageModal.findByIdAndUpdate(
             message._id,
             { status: "seen" },
@@ -128,11 +120,25 @@ io.on("connection", (socket) => {
       console.error("Error sending message:", error);
     }
   });
+  // Handle deleting a message
+  socket.on("delete-message", async ({ id, roomId }) => {
+    try {
+      const deletedMessage = await messageModal.findByIdAndDelete(id);
+
+      if (deletedMessage) {
+        // Emit an event to all clients in the room that the message was deleted
+        io.to(roomId).emit("message-deleted", id);
+      }
+    } catch (error) {
+      console.error("Error deleting message:", error);
+    }
+  });
 
   // Handle user logout
   socket.on("user-logout", (userId) => {
     removeUser(socket.id);
     io.emit("online-users", onlineUsers);
+    io.emit("user-last-seen", { userId, lastSeen: lastSeenTimes[userId] });
   });
 
   // Handle user disconnection
@@ -140,6 +146,14 @@ io.on("connection", (socket) => {
     console.log("A user disconnected");
     removeUser(socket.id);
     io.emit("online-users", onlineUsers);
+
+    const user = onlineUsers.find((user) => user.socketId === socket.id);
+    if (user) {
+      io.emit("user-last-seen", {
+        userId: user.userId,
+        lastSeen: lastSeenTimes[user.userId],
+      });
+    }
   });
 });
 

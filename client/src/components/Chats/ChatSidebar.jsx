@@ -9,25 +9,15 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import io from "socket.io-client";
-import {
-  FaSearch,
-  FaPaperPlane,
-  FaPaperclip,
-  FaSmile,
-  FaUser,
-  FaSignOutAlt,
-  FaCog,
-  FaBell,
-  FaCircle,
-  FaRegCircle,
-} from "react-icons/fa";
-import axios from "axios";
+import { FaSignOutAlt } from "react-icons/fa";
+import useNetworkSpeed from "../../utils/useNetworkSpeed";
 
 const placeholder =
   "https://www.lightsong.net/wp-content/uploads/2020/12/blank-profile-circle.png";
 
 const ChatSidebar = () => {
   const api = UseApi();
+  const networkStatus = useNetworkSpeed();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -42,6 +32,19 @@ const ChatSidebar = () => {
   const handleChange = (e) => {
     setSearch(e.target.value);
   };
+  useEffect(() => {
+    if (networkStatus) {
+      const { effectiveType } = networkStatus;
+      const isSlowNetwork = effectiveType === "2g";
+
+      if (isSlowNetwork) {
+        Popup(
+          "warning",
+          "Your network speed is slow. You may experience delays."
+        );
+      }
+    }
+  }, [networkStatus]);
 
   const fetchUsers = async () => {
     try {
@@ -96,7 +99,7 @@ const ChatSidebar = () => {
     });
 
     return () => {
-      socketRef.current.disconnect()
+      socketRef.current.disconnect();
     };
   }, [dispatch, logUser._id, onlineUser]);
   const fetchRoomIds = useCallback(async () => {

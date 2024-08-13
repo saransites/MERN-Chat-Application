@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import { useSelector, useDispatch } from "react-redux";
-import { UseApi, setOnlineUsers } from "../global/slice";
+import { setOnlineUsers } from "../global/slice";
 import { Popup } from "../../utils/Popup";
 import moment from "moment";
 import { MdSend } from "react-icons/md";
@@ -9,17 +9,19 @@ import { FaSmile, FaPaperclip, FaArrowLeft, FaTrash } from "react-icons/fa";
 import Picker from "emoji-picker-react";
 import ChatSidebar from "./ChatSidebar";
 import { useNavigate, useParams } from "react-router-dom";
+import useNetworkSpeed from "../../utils/useNetworkSpeed";
 
 const placeholder =
   "https://www.lightsong.net/wp-content/uploads/2020/12/blank-profile-circle.png";
 
 const ChatBox = () => {
-  const api = UseApi();
+  const networkStatus=useNetworkSpeed()
   const { roomId } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((state) => state.data.user);
   const currentUser = useSelector((state) => state.data.currentUser);
+  const onlineUser = useSelector((state) => state.data.onlineUser);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -31,23 +33,47 @@ const ChatBox = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (networkStatus) {
+      const { downlink, effectiveType } = networkStatus;
+      if (effectiveType === "2g") {
+        Popup("warning", "Your network speed is slow. You may experience delays.");
+      }
+    }
+  }, [networkStatus]);
+
+  useEffect(() => {
     // Initialize the socket connection
     socketRef.current = io(import.meta.env.VITE_ENDPOINT, {
       transports: ["websocket", "polling", "flashsocket"],
     });
+    return () => {
+      socketRef.current.disconnect();
+    };
+  }, []);
+  useEffect(()=>{
+    const socket=socketRef.current
+    const data = {
+      roomId,
+      userId: user._id,
+    };
+    socket.emit("joinRoom", data);
+    return()=>{
+      socket.emit('leaveRoom',data)
+    }
+  },[currentUser])
 
+  useEffect(() => {
     const socket = socketRef.current;
-
     if (user && currentUser) {
       socket.emit("get-messages", roomId);
     }
-
     socket.on("receive-messages", (msg) => {
       setMessages(msg);
       setLoading(false);
     });
 
     socket.on("receive-message", (newMessage) => {
+      console.log(newMessage)
       setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
 
@@ -58,12 +84,20 @@ const ChatBox = () => {
     socket.on("message-sent", (message) => {
       setMessages((prevMessages) => [...prevMessages, message]);
     });
-
-    // Cleanup on component unmount
-    return () => {
-      socket.disconnect();
-    };
-  }, [roomId, currentUser, user, dispatch]);
+     // Listen for the delete message event
+     socket.on("message-deleted", (id) => {
+      setMessages((prevMessages) => prevMessages.filter(msg => msg._id !== id));
+  });
+  
+    return()=>{
+      socket.off('receive-messages')
+      socket.off('receive-message')
+      socket.off('online-users')
+      socket.off('message-sent')
+      socket.off('message-deleted')
+      socket.off('user-last-seen')
+    }
+  }, [roomId, user, currentUser, dispatch,messages,onlineUser]);
 
   useEffect(() => {
     messageRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -73,7 +107,11 @@ const ChatBox = () => {
   const handleChange = (e) => {
     setMessage(e.target.value);
   };
-
+  const handleLeaveRoom = () => {
+    const socket = socketRef.current;
+    socket.emit("leaveRoom", { roomId, userId: user?._id });
+    navigate('/chats')
+  };
   const onEmojiClick = (event) => {
     setMessage((prevMessage) => prevMessage + event?.emoji);
   };
@@ -130,32 +168,26 @@ const ChatBox = () => {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = (id) => {
     try {
-      await api.delete(`/chat/messages/${id}`);
-      setMessages((prevMessages) =>
-        prevMessages.filter((msg) => msg._id !== id)
-      );
+      socketRef.current.emit("delete-message", { id, roomId });
     } catch (err) {
       Popup("error", "Error deleting message");
     }
   };
 
-  const getStatusClass = useCallback(
-    (status) => {
-      switch (status) {
-        case "sent":
-          return "✔";
-        case "delivered":
-          return "✔✔";
-        case "seen":
-          return "✔✔✔";
-        default:
-          return "";
-      }
-    },
-    []
-  );
+  const getStatusClass = useCallback((status) => {
+    switch (status) {
+      case "sent":
+        return "✔";
+      case "delivered":
+        return "✔✔";
+      case "seen":
+        return "✔✔✔";
+      default:
+        return "";
+    }
+  }, []);
 
   const renderMessageContent = (msg) => {
     switch (msg?.messageType) {
@@ -243,10 +275,15 @@ const ChatBox = () => {
         return null;
     }
   };
-  if(loading){
-    return <div className="absolute inset-0 bg-[rgba(255,255,255,0.1)] flex items-center justify-center h-full">
-      <h1 className="text-white text-2xl">loading...</h1>
-    </div>
+  const isUserOnline = (userId) => {
+    return onlineUser && onlineUser[0]?.some((user) => user.userId === userId);
+  };
+  if (loading) {
+    return (
+      <div className="absolute inset-0 bg-[rgba(255,255,255,0.1)] flex items-center justify-center h-full">
+        <h1 className="text-white text-2xl">loading...</h1>
+      </div>
+    );
   }
 
   return (
@@ -258,7 +295,7 @@ const ChatBox = () => {
         <header className="bg-[#547292] sticky top-0 p-2 rounded flex items-center gap-2 z-10">
           <div className="group cursor-pointer bg-[#373737] rounded-full">
             <FaArrowLeft
-              onClick={() => navigate("/chats")}
+              onClick={handleLeaveRoom}
               className="group-hover:-translate-x-1 transition-transform duration-500 p-2 md:p-1.5 text-3xl md:text-3xl text-[#eee] rounded-full"
             />
           </div>
@@ -270,13 +307,13 @@ const ChatBox = () => {
                 className="w-11 h-11 rounded-full object-cover"
               />
             </figure>
-            <div className="flex flex-col gap-2">
-              <h2 className="text-[#ededed] text-lg font-semibold leading-3">
-                {currentUser?.email?.split('@')[0] || ""}
+            <div className="flex flex-col gap-1">
+              <h2 className="text-[#ededed] capitalize text-lg font-semibold leading-3">
+                {currentUser?.email?.split("@")[0] || ""}
+                  {
+                    isUserOnline(currentUser?._id) ? <span className="text-sm">🟢</span> : <span className="text-sm">🔴</span>
+                  }
               </h2>
-              <span className="text-xs italic text-[#ededed]">
-                Active {moment(currentUser?.updatedAt).fromNow()}
-              </span>
             </div>
           </div>
         </header>
@@ -293,15 +330,17 @@ const ChatBox = () => {
                 }`}
               >
                 <div
-                  className={`bg-${
+                  className={`${
                     msg?.senderId === user?._id
-                      ? "[#4f93a3]"
-                      : "[#abb3ba]"
-                  } px-2 py-1 rounded-md`}
+                      ? "bg-[#349070]"
+                      : "bg-[#707579]"
+                  } px-2 py-1 mb-1 rounded-md`}
                 >
                   {renderMessageContent(msg)}
                   <p className="text-[10px] text-white text-right">
-                    {moment(msg?.createdAt).fromNow()}
+                    <span className="text-[0.6rem]">
+                      {moment(msg?.createdAt).fromNow()}
+                    </span>
                     <span className="ml-1">{getStatusClass(msg?.status)}</span>
                   </p>
                   {msg?.senderId === user?._id && (
@@ -317,25 +356,19 @@ const ChatBox = () => {
         </div>
         <footer className="border-t bg-[#494949] border-gray-300 p-2 sticky bottom-0">
           {file && renderFilePreview()}
-          <form
-            onSubmit={handleSend}
-            className="flex items-center gap-2"
-          >
+          <form onSubmit={handleSend} className="flex items-center gap-2">
             <div className="flex items-center gap-2">
               <FaSmile
                 onClick={() => setShowEmojiPicker((prev) => !prev)}
-                className="cursor-pointer text-md md:text-xl text-yellow-400 hover:text-gray-700"
+                className="cursor-pointer hover:bg-[#585858] transition-bg duration-300 p-2 text-[2.3rem] rounded-full"
               />
               {showEmojiPicker && (
-                <div className="absolute bottom-16">
-                  <Picker
-                    onEmojiClick={onEmojiClick}
-                    disableAutoFocus
-                  />
+                <div className="absolute bottom-16 w-24">
+                  <Picker onEmojiClick={onEmojiClick} disableAutoFocus />
                 </div>
               )}
               <label>
-                <FaPaperclip className="cursor-pointer text-md md:text-lg text-gray-300 hover:text-gray-700" />
+                <FaPaperclip className="cursor-pointer hover:bg-[#585858] transition-bg duration-500 p-2 text-[2.3rem] rounded-full" />
                 <input
                   type="file"
                   accept="image/*,video/*,.doc,.docx,.pdf"
@@ -345,16 +378,16 @@ const ChatBox = () => {
               </label>
             </div>
             <input
-            ref={inputRef}
+              ref={inputRef}
               type="text"
               value={message}
               onChange={handleChange}
               placeholder="Type a message..."
-              className="flex-1 py-2 px-4 bg-[#78787800] rounded-full focus:outline-none"
+              className="flex-1 py-2 px-4 text--[#fff] bg-[#5d5d5d] rounded-full focus:outline-none"
             />
             <button
               type="submit"
-              className="p-1.5 md:p-2.5 bg-blue-500 text-white rounded-full hover:bg-blue-600"
+              className="p-2.5 bg-blue-500 text-white rounded-full hover:bg-blue-600"
             >
               <MdSend className="text-lg md:text-md pl-0.5" />
             </button>

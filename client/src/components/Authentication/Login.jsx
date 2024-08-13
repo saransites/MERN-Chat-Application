@@ -78,13 +78,13 @@ const Login = () => {
         </div>
         <button
           type="submit"
-          className="block mx-auto bg-blue-600 p-2 px-6 rounded"
+          className="block mx-auto bg-blue-600 p-2 px-6 rounded hover:px-8 transition-all duration-500"
         >
           Login
         </button>
         <p className="text-center my-4">
           Create a new account?{" "}
-          <Link className="underline text-sky-400" to="/signup">
+          <Link className="underline text-sky-400 hover:no-underline" to="/signup">
             Signup
           </Link>{" "}
         </p>
