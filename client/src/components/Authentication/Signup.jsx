@@ -23,9 +23,11 @@ const Signup = () => {
       return;
     }
     try {
-      await api.post("/auth/signup", form);
-      navigate('/')
-      Popup("success", "Account Created Successfully...");
+      const res=await api.post("/auth/signup", form)
+      if(res.status === 201){
+        navigate('/')
+        Popup("success", "Account Created Successfully...");
+      }
     } catch (err) {
       if (err.response.status == 401) {
         Popup("error", "User already exists");
@@ -39,7 +41,7 @@ const Signup = () => {
     }
   };
   return (
-    <div className="m-2 border grid md:grid-cols-2 md:justify-center h-[100dvh]">
+    <div className="m-2 border grid grid-cols-1 md:grid-cols-2 md:justify-center h-[100dvh]">
       <picture className="hidden md:block">
         <img src={bg} alt="image" className="w-full h-full object-cover" />
       </picture>

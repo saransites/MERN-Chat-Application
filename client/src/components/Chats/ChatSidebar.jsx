@@ -147,21 +147,24 @@ const ChatSidebar = () => {
 
   return (
     <div
-      className={`sticky top-0 grid grid-cols-1 ${
+      className={`sticky shadow-[0_0_1px_1px_#262626] h-[100dvh] top-0 grid grid-cols-1 ${
         location.pathname == "/chats" && "md:grid-cols-[250px_1fr]"
       }`}
     >
-      <div>
-        <div className={`flex justify-between gap-1.5`}>
-          <h1 className="p-4 flex-1 bg-[#736284] rounded-md text-white text-xl font-semibold">
+      <div className="">
+        <div className={`bg-[rgba(255,255,255,0.1)] flex justify-between items-center gap-1.5`}>
+          <h1 className="p-4 flex-1 text-white text-xl font-semibold">
             Chats
           </h1>
-          <button
-            className="p-4 self-center mr-1 group px- bg-red-500 rounded-full"
-            onClick={handleLogout}
-          >
-            <FaSignOutAlt className="group-hover:translate-x-1 transition-transform duration-500" />
-          </button>
+          <details className="relative">
+            <summary className="list-none mr-2 md:mr-1 cursor-pointer hover:scale-95 transition-scale duration-500">
+              <img src={placeholder} alt="log-user" className="w-9 h-9" />
+            </summary>
+            <ul className="absolute -left-32 bg-[rgba(255,255,255,0.1)] backdrop-blur-xl text-[#ffffff] p-2 rounded-md mt-1">
+              <li className="tracking-wider mb-1 font-semibold">{logUser.email.split('@')[0]}</li>
+              <li onClick={handleLogout} className="cursor-pointer hover:tracking-wider text-center tracking-wide bg-[#d55151] p-1.5 rounded transition-all duration-500">Signout</li>
+            </ul>
+          </details>
         </div>
         <ul className="list-none p-0 m-0">
           {users
@@ -171,17 +174,20 @@ const ChatSidebar = () => {
             .map((user) => (
               <li
                 key={user._id}
-                className="group flex items-center justify-between mt-2 p-2 rounded cursor-pointer bg-[#658372] hover:bg-[#658372de] transition-bg duration-500"
+                className={`group flex items-center justify-between mt-2 p-2 rounded cursor-pointer ${
+                  currentUser?._id == user._id &&
+                  "bg-[rgba(255,255,255,0.1)] backdrop-blur-2xl"
+                } hover:bg-[#658372de] transition-bg duration-500`}
                 onClick={() => handleChatRoom(user)}
               >
-                <figure className="flex gap-2 items-center">
+                <figure className="flex gap-2 items-center overflow-hidden">
                   <img
                     src={placeholder}
                     alt="profile"
-                    className="w-10 h-10 rounded-full group-hover:-translate-x-1 transition-transform duration-500"
+                    className="w-9 h-9 rounded-full group-hover:translate-x-0.5 transition-transform duration-500"
                   />
                   <figcaption>
-                    <p className="font-bold capitalize group-hover:translate-x-1 transition-transform duration-500">
+                    <p className="font-bold text-sm tracking-wider capitalize group-hover:-translate-x-0.5 transition-transform duration-500">
                       {user.email.split("@")[0]}
                     </p>
                   </figcaption>

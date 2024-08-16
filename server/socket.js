@@ -87,9 +87,10 @@ io.on("connection", (socket) => {
   });
 
   // Handle sending a message
-  socket.on("send-message", async (data) => {
+  socket.on("send-message", async (data, callback) => {
     const { roomId, receiverId } = data;
     try {
+      callback({ UploadStatus: "uploading" });
       const message = new messageModal(data);
       await message.save();
 
@@ -113,11 +114,15 @@ io.on("connection", (socket) => {
         }
 
         socket.emit("message-sent", updatedMessage);
+        callback({ UploadStatus: "sent" });
       } else {
+        callback({ UploadStatus: true });
         socket.emit("message-sent", message);
       }
+      callback({ UploadStatus: true });
     } catch (error) {
       console.error("Error sending message:", error);
+      callback({ UploadStatus: false });
     }
   });
   // Handle deleting a message

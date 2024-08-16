@@ -27,6 +27,7 @@ const Login = () => {
       dispatch(setToken(token))
       dispatch(setUsers(user))
       navigate('/chats')
+      Popup('success','Loggedin successfully')
     } catch (err) {
       if (err?.response?.status == 404) {
         Popup("error", err.response?.data?.message);
@@ -45,7 +46,7 @@ const Login = () => {
     }
   };
   return (
-    <div className="m-2 border grid md:grid-cols-2 md:justify-center h-[100dvh]">
+    <div className="m-2 border grid grid-cols-1 md:grid-cols-2 md:justify-center h-[100dvh]">
       <form onSubmit={handleSubmit} className="self-center p-4">
         <h1 className="text-2xl font-semibold mb-8 text-center">
           Login your Account
