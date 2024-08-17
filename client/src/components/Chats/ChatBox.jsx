@@ -354,7 +354,7 @@ const ChatBox = () => {
             </div>
           </div>
         </header>
-        <div className="p-2 overflow-y-auto">
+        <div className="p-2 min-h-full sm:h-auto overflow-y-auto">
           <ul>
             {messages.length > 0 ? (
               messages.map((msg) => (
