@@ -3,11 +3,12 @@ import { useSelector, useDispatch } from "react-redux";
 import { UseApi } from "../global/slice";
 import { Link, useNavigate } from "react-router-dom";
 import { Popup } from "../../utils/Popup";
-const bg =
-  "https://images.unsplash.com/photo-1496917756835-20cb06e75b4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1908&q=80";
+import bg from '../../assets/vecteezy_landscape-of-the-mountain-view-behind-the-lake-with-many_13860737.svg'
+import { Loader } from "../../utils/loader";
 const Signup = () => {
   const api = UseApi();
   const navigate = useNavigate();
+  const [loading,setLoading]=useState(false)
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -18,6 +19,7 @@ const Signup = () => {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true)
     if (form.confirmPassword !== form.password) {
       Popup("error", "confirm password and password does not match");
       return;
@@ -38,51 +40,50 @@ const Signup = () => {
         return;
       }
       Popup("error", "something went wrong");
+    }finally{
+        setLoading(false)
     }
   };
   return (
-    <div className="m-2 border grid grid-cols-1 md:grid-cols-2 md:justify-center h-[100dvh]">
-      <picture className="hidden md:block">
-        <img src={bg} alt="image" className="w-full h-full object-cover" />
-      </picture>
-      <form onSubmit={handleSubmit} className="self-center p-4">
-        <h1 className="text-2xl font-semibold mb-8 text-center">
+    <div style={{background:`url(${bg}) no-repeat center/cover`}} className="h-[100dvh] flex justify-center items-center">
+      <form onSubmit={handleSubmit} className="shadow-[0_0_.5rem_#262626] hover:shadow-[0_0_.8rem_#262626] transition-shadow duration-300 bg-[rgba(255,255,255,0.2)] p-4 px-8 rounded-lg">
+        <h1 className="text-2xl font-bold mb-8 text-[#262626] text-center">
           Create Your Account
         </h1>
         <div>
-          <label htmlFor="email" className="font-medium">
+          <label htmlFor="email" className="font-medium text-[rgba(0,0,0,0.6)]">
             Email
           </label>
           <input
             id="email"
             type="email"
-            className="block w-full my-2 p-2 rounded bg-slate-200 border-none text-[#262626]"
+            className="outline-none block w-full my-2 p-2 rounded bg-[rgba(255,255,255,0.3)] border-none text-[#262626]"
             value={form.email}
             name="email"
             onChange={handleChange}
           />
         </div>
         <div>
-          <label className="font-medium" htmlFor="password">
+          <label className="font-medium text-[rgba(0,0,0,0.6)]" htmlFor="password">
             Password
           </label>
           <input
             id="password"
             type="password"
-            className="block w-full my-2 p-2 rounded bg-slate-200 border-none text-[#262626]"
+            className="outline-none block w-full my-2 p-2 rounded bg-[rgba(255,255,255,0.3)] border-none text-[#262626]"
             value={form.password}
             name="password"
             onChange={handleChange}
           />
         </div>
         <div>
-          <label className="font-medium" htmlFor="cpassword">
+          <label className="font-medium text-[rgba(0,0,0,0.6)]" htmlFor="cpassword">
             Confirm Password
           </label>
           <input
             id="cpassword"
             type="password"
-            className="block w-full my-2 p-2 rounded bg-slate-200 border-none text-[#262626]"
+            className="outline-none block w-full my-2 p-2 rounded bg-[rgba(255,255,255,0.3)] border-none text-[#262626]"
             value={form.confirmPassword}
             name="confirmPassword"
             onChange={handleChange}
@@ -90,13 +91,16 @@ const Signup = () => {
         </div>
         <button
           type="submit"
-          className="block mx-auto bg-blue-600 p-2 px-6 rounded"
+          disabled={loading}
+          className={`block mx-auto ${loading && "cursor-not-allowed"} bg-[#336d70] p-2 px-6 rounded`}
         >
-          Create Account
+          {
+            loading ? <Loader/> : <span className="font-bold tracking-wide hover:tracking-widest transition-all duration-500">Signup</span>
+          }
         </button>
-        <p className="text-center my-4">
+        <p className="text-center text-[rgba(0,0,0,0.7)] my-4">
           Already have an account?{" "}
-          <Link className="underline text-sky-400" to="/">
+          <Link className="underline text-[#382100] hover:tracking-wide hover:no-underline transition-all duration-500" to="/">
             Login
           </Link>{" "}
         </p>

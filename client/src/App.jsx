@@ -5,6 +5,7 @@ import Signup from "./components/Authentication/Signup";
 import ChatBox from "./components/Chats/ChatBox";
 import Protected from "./Protected";
 import ChatSidebar from "./components/Chats/ChatSidebar";
+import Profileimage from "./utils/Profileimage";
 
 const App = () => {
   return (
@@ -13,6 +14,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/profile" element={<Profileimage />} />
           <Route path="/chats" element={<Protected Component={ChatSidebar} />}></Route>
           <Route
             path="/chatbox/:roomId"

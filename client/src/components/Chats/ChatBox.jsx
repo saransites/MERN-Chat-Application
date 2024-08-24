@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { setCurrentUser, setOnlineUsers } from "../global/slice";
 import { Popup } from "../../utils/Popup";
 import moment from "moment";
-import { MdSend } from "react-icons/md";
+import { MdClose, MdSend } from "react-icons/md";
 import {
   FaSmile,
   FaPaperclip,
@@ -17,6 +17,7 @@ import ChatSidebar from "./ChatSidebar";
 import { useNavigate, useParams } from "react-router-dom";
 import useNetworkSpeed from "../../utils/useNetworkSpeed";
 import { SlOptionsVertical } from "react-icons/sl";
+import { MessageLoading } from "../../utils/MessageLoading";
 
 const placeholder =
   "https://www.lightsong.net/wp-content/uploads/2020/12/blank-profile-circle.png";
@@ -175,7 +176,6 @@ const ChatBox = () => {
 
     try {
       socketRef.current.emit("send-message", data, (acknowledgement) => {
-        console.log(acknowledgement);
         if (acknowledgement.UploadStatus) {
           setMessage("");
           setFile(null);
@@ -258,12 +258,6 @@ const ChatBox = () => {
               alt="attachment"
               className="w-36 h-36 absolute bottom-16 object-contain"
             />
-            <button
-              onClick={() => setFile(null)}
-              className="absolute bottom-16 left-1/4 border p-1 rounded-full px-3 bg-slate-900 hover:-translate-y-1 transition-all duration-500"
-            >
-              x
-            </button>
           </figure>
         );
       case "video":
@@ -274,24 +268,12 @@ const ChatBox = () => {
               controls
               className="w-28 h-28 absolute bottom-16 object-contain"
             ></video>
-            <button
-              onClick={() => setFile(null)}
-              className="absolute bottom-16 left-1/4 border p-1 rounded-full px-3 bg-slate-900 hover:-translate-y-1 transition-all duration-500"
-            >
-              x
-            </button>
           </div>
         );
       case "document":
         return (
           <div>
             <p>{file?.name}</p>
-            <button
-              onClick={() => setFile(null)}
-              className="absolute bottom-16 left-1/4 border p-1 rounded-full px-3 bg-slate-900 hover:-translate-y-1 transition-all duration-500"
-            >
-              x
-            </button>
           </div>
         );
       default:
@@ -314,11 +296,7 @@ const ChatBox = () => {
     return onlineUser && onlineUser[0]?.some((user) => user.userId === userId);
   };
   if (loading) {
-    return (
-      <div className="absolute inset-0 bg-[rgba(255,255,255,0)] flex items-center justify-center h-full">
-        <h1 className="text-white text-2xl">loading...</h1>
-      </div>
-    );
+    return <MessageLoading />;
   }
 
   return (
@@ -328,16 +306,18 @@ const ChatBox = () => {
       </div>
       <div className="grid grid-rows-[60px_auto_50px] h-full">
         <header className="bg-[#4e4e4e] border-b border-[#262626] backdrop-blur-xl sticky top-0 p-2  flex items-center gap-2 z-10">
-          <div className="group cursor-pointer bg-[#349070] w-10 h-10 flex justify-center items-center rounded-full">
-            <FaArrowLeft
-              onClick={handleLeaveRoom}
-              className="group-hover:-translate-x-1 transition-transform duration-500 text-[0.85rem] md:text-[1rem] text-[#eee] rounded-full"
-            />
+          <div
+            onClick={handleLeaveRoom}
+            className="group cursor-pointer bg-[#349070] w-10 h-10 flex justify-center items-center rounded-full"
+          >
+            <FaArrowLeft className="group-hover:-translate-x-1 transition-transform duration-500 text-[0.85rem] md:text-[1rem] text-[#eee] rounded-full" />
           </div>
           <div className="flex items-center gap-2">
             <figure>
               <img
-                src={currentUser?.avatar || placeholder}
+                src={`${import.meta.env.VITE_ENDPOINT}/profile/${
+                  currentUser?.profile
+                }`}
                 alt={currentUser?.name}
                 className="w-9 h-9 rounded-full object-cover"
               />
@@ -361,20 +341,30 @@ const ChatBox = () => {
                 <li
                   key={msg?._id}
                   ref={messageRef}
-                  className={`flex ${
+                  className={`flex items-center gap-1 ${
                     msg?.senderId === user?._id
                       ? "justify-end self-end"
                       : "justify-start self-start"
                   }`}
                 >
+                  <img
+                    src={`${import.meta.env.VITE_ENDPOINT}/profile/${
+                      user?.profile
+                    }`}
+                    alt={user?.name}
+                    className="w-9 h-9 rounded-full object-cover"
+                  />
                   <div
                     className={`${
                       msg?.senderId === user?._id
                         ? "bg-[#349070]"
                         : "bg-[#707579]"
-                    } px-2 py-1 mb-1 rounded-md relative`}
+                    } px-6 py-1 mb-1 rounded-md relative`}
                   >
                     {renderMessageContent(msg)}
+                    {
+                      // msg.messageType ===
+                    }
                     <p className="text-[10px] text-white text-right">
                       <span className="text-[0.6rem]">
                         {moment(msg?.createdAt).fromNow()}
@@ -389,11 +379,12 @@ const ChatBox = () => {
                           <SlOptionsVertical className="text-xs text-white cursor-pointer" />
                         </summary>
                         <ul className="absolute top-3.5 left-0 bg-[#4e4e4e] p-1 rounded cursor-pointer">
-                          <li onClick={() => handleDelete(msg?._id)} className="flex items-center gap-1 text-[0.75rem] bg-[#f65b5b] p-1 rounded transition duration-500">
-                              <FaTrash />
-                            <span>
-                              Delete
-                            </span>
+                          <li
+                            onClick={() => handleDelete(msg?._id)}
+                            className="flex items-center gap-1 text-[0.75rem] bg-[#f65b5b] p-1 rounded transition duration-500"
+                          >
+                            <FaTrash />
+                            <span>Delete</span>
                           </li>
                         </ul>
                       </details>
@@ -412,6 +403,14 @@ const ChatBox = () => {
         {renderFileStatus()}
         <footer className="border-t bg-[#4e4e4e] backdrop-blur-xl border-[#262626] p-1 sticky bottom-0">
           {file && renderFilePreview()}
+          {file && (
+            <button
+              onClick={() => setFile(null)}
+              className="absolute bottom-44 left-40 border p-1 py-3 rounded-full px-3 bg-slate-900 hover:-translate-y-1 transition-all duration-500"
+            >
+              <MdClose/>
+            </button>
+          )}
           <form onSubmit={handleSend} className="flex items-center gap-2">
             <div className="flex items-center gap-2">
               <FaSmile
@@ -443,9 +442,9 @@ const ChatBox = () => {
             />
             <button
               type="submit"
-              className="p-[0.6rem] group bg-[#349070] text-white rounded-full hover:bg-blue-600"
+              className="p-[0.6rem] bg-[#349070] text-white rounded-full hover:bg-blue-600"
             >
-              <MdSend className="text-xl group-hover:translate-x-0.5 transition-transform duration-500 md:text-md pl-1 pt-[0.1rem]" />
+              <MdSend className="text-2xl transition-transform duration-500 md:text-md pl-1" />
             </button>
           </form>
         </footer>

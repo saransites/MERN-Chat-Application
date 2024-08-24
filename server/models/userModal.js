@@ -18,6 +18,9 @@ const userModal = new Schema({
     type: String,
     required: true,
   },
+  profile: {
+    type: String,
+  },
   isActive: {
     type: Boolean,
     default: false,

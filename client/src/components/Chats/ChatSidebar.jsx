@@ -9,8 +9,9 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import io from "socket.io-client";
-import { FaSignOutAlt } from "react-icons/fa";
+import { FaPencilAlt, FaSignOutAlt } from "react-icons/fa";
 import useNetworkSpeed from "../../utils/useNetworkSpeed";
+import PreviewImage from "../../utils/PreviewImage";
 
 const placeholder =
   "https://www.lightsong.net/wp-content/uploads/2020/12/blank-profile-circle.png";
@@ -24,14 +25,13 @@ const ChatSidebar = () => {
   const logUser = useSelector((state) => state.data.user);
   const onlineUser = useSelector((state) => state.data.onlineUser);
   const currentUser = useSelector((state) => state.data.currentUser);
-  const [search, setSearch] = useState("");
   const [users, setUsers] = useState([]);
   const [roomIds, setRoomIds] = useState([]);
   const socketRef = useRef(null);
+  const [loading,setLoading]=useState(false)
+  const [file,setFile]=useState(null)
+  const {profile}=useSelector(state=>state.data.user)
 
-  const handleChange = (e) => {
-    setSearch(e.target.value);
-  };
   useEffect(() => {
     if (networkStatus) {
       const { effectiveType } = networkStatus;
@@ -47,6 +47,7 @@ const ChatSidebar = () => {
   }, [networkStatus]);
 
   const fetchUsers = async () => {
+    setLoading(true)
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -71,6 +72,8 @@ const ChatSidebar = () => {
     } catch (err) {
       console.error(err);
       Popup("error", "Error fetching data");
+    }finally{
+      setLoading(false)
     }
   };
 
@@ -117,6 +120,7 @@ const ChatSidebar = () => {
       fetchRoomIds();
     }
   }, [logUser]);
+  console.log(true)
   useEffect(() => {
     socketRef.current = io(import.meta.env.VITE_ENDPOINT, {
       transports: ["websocket", "polling", "flashsocket"],
@@ -128,75 +132,81 @@ const ChatSidebar = () => {
   }, [logUser, roomIds]);
 
   const handleChatRoom = async (selectedUser) => {
-    // const socket = io(import.meta.env.VITE_ENDPOINT);
     dispatch(setCurrentUser(selectedUser));
     const roomId =
       parseInt(logUser?.username?.slice(4)) +
       parseInt(selectedUser?.username?.slice(4));
-    const data = {
-      roomId,
-      userId: logUser?._id,
-    };
-    // socket.emit("joinRoom", data);
     navigate(`/chatbox/${roomId}`);
   };
 
   const isUserOnline = (userId) => {
     return onlineUser && onlineUser[0]?.some((user) => user.userId === userId);
   };
-
+  const handleFileChange=(e)=>{
+    setFile(e.target.files[0])
+  }
+  if(file){
+    return <PreviewImage file={file} setFile={setFile} />
+  }
   return (
     <div
       className={`sticky shadow-[0_0_1px_1px_#262626] h-[100dvh] top-0 grid grid-cols-1 ${
         location.pathname == "/chats" && "md:grid-cols-[250px_1fr]"
       }`}
     >
-      <div className="">
-        <div className={`bg-[rgba(255,255,255,0.1)] flex justify-between items-center gap-1.5`}>
-          <h1 className="p-4 flex-1 text-white text-xl font-semibold">
-            Chats
-          </h1>
+      <div>
+        <div
+          className={`bg-[rgba(255,255,255,0.1)] flex justify-between items-center gap-1.5`}
+        >
+          <h1 className="p-4 flex-1 text-white text-xl font-semibold">Chats</h1>
           <details className="relative">
-            <summary className="list-none mr-2 md:mr-1 cursor-pointer hover:scale-95 transition-scale duration-500">
-              <img src={placeholder} alt="log-user" className="w-9 h-9" />
+            <summary className="list-none mr-3 md:mr-2 cursor-pointer">
+              <div className="rounded-full bg-[#89898967]"><img src={`${import.meta.env.VITE_ENDPOINT}/profile/${profile}`} alt="log-user" className="w-12 h-12 p-1.5 rounded-full" /></div>
+              <label htmlFor="profile" className="cursor-pointer absolute hover:scale-110 transition-scale duration-500 top-0 right-0 bg-[#349070] hover:bg-[#262626] p-2 rounded-full text-[0.7rem]">
+                <FaPencilAlt/>
+                <input type='file' id="profile" onChange={handleFileChange} hidden/>
+              </label>
             </summary>
             <ul className="absolute -left-32 bg-[rgba(255,255,255,0.1)] backdrop-blur-xl text-[#ffffff] p-2 rounded-md mt-1">
-              <li className="tracking-wider mb-1 font-semibold">{logUser.email.split('@')[0]}</li>
-              <li onClick={handleLogout} className="cursor-pointer hover:tracking-wider text-center tracking-wide bg-[#d55151] p-1.5 rounded transition-all duration-500">Signout</li>
+              <li className="tracking-wider mb-1 font-semibold">
+                {logUser.email.split("@")[0]}
+              </li>
+              <li
+                onClick={handleLogout}
+                className="cursor-pointer hover:tracking-wider text-center tracking-wide bg-[#d55151] p-1.5 rounded transition-all duration-500"
+              >
+                Signout
+              </li>
             </ul>
           </details>
         </div>
-        <ul className="list-none p-0 m-0">
-          {users
-            .filter((user) =>
-              user.email.toLowerCase().includes(search.toLowerCase())
-            )
-            .map((user) => (
-              <li
-                key={user._id}
-                className={`group flex items-center justify-between mt-2 p-2 rounded cursor-pointer ${
-                  currentUser?._id == user._id &&
-                  "bg-[rgba(255,255,255,0.1)] backdrop-blur-2xl"
-                } hover:bg-[#658372de] transition-bg duration-500`}
-                onClick={() => handleChatRoom(user)}
-              >
-                <figure className="flex gap-2 items-center overflow-hidden">
-                  <img
-                    src={placeholder}
-                    alt="profile"
-                    className="w-9 h-9 rounded-full group-hover:translate-x-0.5 transition-transform duration-500"
-                  />
-                  <figcaption>
-                    <p className="font-bold text-sm tracking-wider capitalize group-hover:-translate-x-0.5 transition-transform duration-500">
-                      {user.email.split("@")[0]}
-                    </p>
-                  </figcaption>
-                </figure>
-                <span className="text-sm text-gray-500">
-                  {isUserOnline(user._id) ? "🟢" : "🔴"}
-                </span>
-              </li>
-            ))}
+        <ul className="list-none">
+          {users.map((user) => (
+            <li
+              key={user._id}
+              className={`group flex items-center justify-between mt-2 p-2 rounded cursor-pointer ${
+                currentUser?._id == user._id &&
+                "bg-[rgba(255,255,255,0.1)] backdrop-blur-2xl"
+              } hover:bg-[#658372de] transition-bg duration-500`}
+              onClick={() => handleChatRoom(user)}
+            >
+              <figure className="flex gap-2 items-center overflow-hidden">
+                <img
+                  src={`${import.meta.env.VITE_ENDPOINT}/profile/${user.profile}`}
+                  alt="profile"
+                  className="w-9 h-9 rounded-full group-hover:translate-x-0.5 transition-transform duration-500"
+                />
+                <figcaption>
+                  <p className="font-bold text-sm tracking-wider capitalize group-hover:-translate-x-0.5 transition-transform duration-500">
+                    {user.email.split("@")[0]}
+                  </p>
+                </figcaption>
+              </figure>
+              <span className="text-sm text-gray-500">
+                {isUserOnline(user._id) ? "🟢" : "🔴"}
+              </span>
+            </li>
+          ))}
         </ul>
       </div>
       {location.pathname == "/chats" && (
@@ -205,7 +215,7 @@ const ChatSidebar = () => {
         </div>
       )}
     </div>
-  );
+  )
 };
 
-export default ChatSidebar;
+export default React.memo(ChatSidebar);
