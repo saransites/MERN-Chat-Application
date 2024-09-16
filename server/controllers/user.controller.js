@@ -32,6 +32,7 @@ const Login = async (req, res) => {
     return res.json({ token, user });
   } catch (err) {
     console.log(err);
+    return res.status(500).json('Internal server error');
   }
 };
 const Signup = async (req, res) => {

@@ -72,13 +72,21 @@ const ChatBox = () => {
     return () => {
       socket.emit("leaveRoom", data);
     };
-  }, [currentUser]);
-
+  }, [roomId]);
   useEffect(() => {
     const socket = socketRef.current;
+
     if (user && currentUser) {
       socket.emit("get-messages", roomId);
     }
+
+    return () => {
+      socket.off("get-messages");
+    };
+  }, [roomId]);
+
+  useEffect(() => {
+    const socket = socketRef.current;
     socket.on("receive-messages", (msg) => {
       setMessages(msg);
       setLoading(false);
@@ -298,9 +306,8 @@ const ChatBox = () => {
   if (loading) {
     return <MessageLoading />;
   }
-
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-[250px_1fr] h-[100dvh]">
+    <div className="grid grid-cols-1 sm:grid-cols-[250px_1fr] h-[100vh]">
       <div className="hidden sm:block relative h-full mr-[0.05rem]">
         <ChatSidebar />
       </div>
@@ -334,26 +341,36 @@ const ChatBox = () => {
             </div>
           </div>
         </header>
-        <div className="p-2 min-h-full sm:h-auto overflow-y-auto">
+        <div className="p-2 min-h-[100vh] overflow-y-auto">
           <ul>
             {messages.length > 0 ? (
               messages.map((msg) => (
                 <li
                   key={msg?._id}
-                  ref={messageRef}
+                  // ref={messageRef}
                   className={`flex items-center gap-1 ${
                     msg?.senderId === user?._id
                       ? "justify-end self-end"
                       : "justify-start self-start"
                   }`}
                 >
-                  <img
-                    src={`${import.meta.env.VITE_ENDPOINT}/profile/${
-                      user?.profile
-                    }`}
-                    alt={user?.name}
-                    className="w-9 h-9 rounded-full object-cover"
-                  />
+                  {msg?.senderId !== user?._id ? (
+                    <img
+                      src={`${import.meta.env.VITE_ENDPOINT}/profile/${
+                        currentUser?.profile
+                      }`}
+                      alt={user?.name}
+                      className="w-9 h-9 rounded-full object-cover"
+                    />
+                  ) : (
+                    <img
+                      src={`${import.meta.env.VITE_ENDPOINT}/profile/${
+                        user?.profile
+                      }`}
+                      alt={user?.name}
+                      className="w-9 h-9 rounded-full object-cover"
+                    />
+                  )}
                   <div
                     className={`${
                       msg?.senderId === user?._id
@@ -362,9 +379,6 @@ const ChatBox = () => {
                     } px-6 py-1 mb-1 rounded-md relative`}
                   >
                     {renderMessageContent(msg)}
-                    {
-                      // msg.messageType ===
-                    }
                     <p className="text-[10px] text-white text-right">
                       <span className="text-[0.6rem]">
                         {moment(msg?.createdAt).fromNow()}
@@ -408,7 +422,7 @@ const ChatBox = () => {
               onClick={() => setFile(null)}
               className="absolute bottom-44 left-40 border p-1 py-3 rounded-full px-3 bg-slate-900 hover:-translate-y-1 transition-all duration-500"
             >
-              <MdClose/>
+              <MdClose />
             </button>
           )}
           <form onSubmit={handleSend} className="flex items-center gap-2">
@@ -453,4 +467,4 @@ const ChatBox = () => {
   );
 };
 
-export default ChatBox;
+export default React.memo(ChatBox);

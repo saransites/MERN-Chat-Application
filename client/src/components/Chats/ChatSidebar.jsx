@@ -120,7 +120,6 @@ const ChatSidebar = () => {
       fetchRoomIds();
     }
   }, [logUser]);
-  console.log(true)
   useEffect(() => {
     socketRef.current = io(import.meta.env.VITE_ENDPOINT, {
       transports: ["websocket", "polling", "flashsocket"],
@@ -161,7 +160,7 @@ const ChatSidebar = () => {
           <h1 className="p-4 flex-1 text-white text-xl font-semibold">Chats</h1>
           <details className="relative">
             <summary className="list-none mr-3 md:mr-2 cursor-pointer">
-              <div className="rounded-full bg-[#89898967]"><img src={`${import.meta.env.VITE_ENDPOINT}/profile/${profile}`} alt="log-user" className="w-12 h-12 p-1.5 rounded-full" /></div>
+              <div className="rounded-full bg-[#89898967]"><img src={`${import.meta.env.VITE_ENDPOINT}/profile/${profile}`} alt="log-user" className="w-12 h-12 p-1 rounded-full object-cover" /></div>
               <label htmlFor="profile" className="cursor-pointer absolute hover:scale-110 transition-scale duration-500 top-0 right-0 bg-[#349070] hover:bg-[#262626] p-2 rounded-full text-[0.7rem]">
                 <FaPencilAlt/>
                 <input type='file' id="profile" onChange={handleFileChange} hidden/>
