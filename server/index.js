@@ -13,6 +13,7 @@ app.use(
     origin: process.env.CLIENT_URL,
     methods: ["GET", "HEAD", "PUT", "DELETE", "POST"],
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization']
   })
 );
 app.use(express.json());
@@ -49,7 +50,7 @@ app.post("/profileImage", upload.single("profileImage"), async (req, res) => {
       res
       .status(200)
         .json({
-          message: "Profile image updated successfully",
+          message: "Profile image updated successfully", 
           user: existUser,
         });
     } 
