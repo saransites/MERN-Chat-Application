@@ -45,7 +45,7 @@ const Signup = () => {
     }
   };
   return (
-    <div style={{background:`url(${bg}) no-repeat center/cover`}} className="h-[100dvh] flex justify-center items-center">
+    <div style={{background:`url(${bg}) no-repeat center/cover`}} className="h-[100vh] flex justify-center items-center">
       <form onSubmit={handleSubmit} className="shadow-[0_0_.5rem_#262626] hover:shadow-[0_0_.8rem_#262626] transition-shadow duration-300 bg-[rgba(255,255,255,0.2)] p-4 px-8 rounded-lg">
         <h1 className="text-2xl font-bold mb-8 text-[#262626] text-center">
           Create Your Account
