@@ -83,7 +83,7 @@ const ChatBox = () => {
     return () => {
       socket.off("get-messages");
     };
-  }, [roomId]);
+  }, [roomId,messages]);
 
   useEffect(() => {
     const socket = socketRef.current;

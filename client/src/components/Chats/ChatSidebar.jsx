@@ -149,7 +149,7 @@ const ChatSidebar = () => {
   }
   return (
     <div
-      className={`sticky bg-[#4e4e4e] shadow-[0_0_1px_1px_#262626] h-[100dvh] top-0 grid grid-cols-1 ${
+      className={`sticky bg-[#4e4e4e] shadow-[0_0_1px_1px_#262626] h-[100vh] top-0 grid grid-cols-1 ${
         location.pathname == "/chats" && "md:grid-cols-[250px_1fr]"
       }`}
     >
@@ -193,7 +193,7 @@ const ChatSidebar = () => {
                 <img
                   src={`${import.meta.env.VITE_ENDPOINT}/profile/${user.profile}`}
                   alt="profile"
-                  className="w-9 h-9 rounded-full group-hover:translate-x-0.5 transition-transform duration-500"
+                  className="w-9 h-9 rounded-full group-hover:translate-x-0.5 object-cover transition-transform duration-500"
                 />
                 <figcaption>
                   <p className="font-bold text-sm tracking-wider capitalize group-hover:-translate-x-0.5 transition-transform duration-500">
