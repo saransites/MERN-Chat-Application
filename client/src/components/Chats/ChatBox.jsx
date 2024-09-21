@@ -381,7 +381,7 @@ const ChatBox = () => {
                     {renderMessageContent(msg)}
                     <p className="text-[10px] text-white text-right">
                       <span className="text-[0.6rem]">
-                        {moment(msg?.createdAt).fromNow()}
+                      {moment(msg?.createdAt).format('h:mm A')}
                       </span>
                       <span className="ml-1">
                         {getStatusClass(msg?.status)}
