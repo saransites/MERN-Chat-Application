@@ -166,7 +166,7 @@ const ChatSidebar = () => {
                 <input type='file' id="profile" onChange={handleFileChange} hidden/>
               </label>
             </summary>
-            <ul className="absolute -left-32 bg-[rgba(255,255,255,0.1)] backdrop-blur-xl text-[#ffffff] p-2 rounded-md mt-1">
+            <ul className="absolute z-[9] -left-32 bg-[rgba(255,255,255,0.1)] backdrop-blur-xl text-[#ffffff] p-2 rounded-md mt-1">
               <li className="tracking-wider mb-1 font-semibold">
                 {logUser.email.split("@")[0]}
               </li>
