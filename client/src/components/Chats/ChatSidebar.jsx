@@ -149,13 +149,13 @@ const ChatSidebar = () => {
   }
   return (
     <div
-      className={`sticky shadow-[0_0_1px_1px_#262626] h-[100dvh] top-0 grid grid-cols-1 ${
+      className={`sticky bg-[#4e4e4e] shadow-[0_0_1px_1px_#262626] h-[100dvh] top-0 grid grid-cols-1 ${
         location.pathname == "/chats" && "md:grid-cols-[250px_1fr]"
       }`}
     >
       <div>
         <div
-          className={`bg-[rgba(255,255,255,0.1)] flex justify-between items-center gap-1.5`}
+          className={`bg-[#4e4e4e] flex justify-between items-center gap-1.5`}
         >
           <h1 className="p-4 flex-1 text-white text-xl font-semibold">Chats</h1>
           <details className="relative">

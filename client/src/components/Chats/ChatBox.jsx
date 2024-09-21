@@ -341,7 +341,7 @@ const ChatBox = () => {
             </div>
           </div>
         </header>
-        <div className="p-2 min-h-[100vh] overflow-y-auto">
+        <main className="p-2 min-h-[100vh] overflow-y-auto bg-[#4a4949]">
           <ul>
             {messages.length > 0 ? (
               messages.map((msg) => (
@@ -413,7 +413,7 @@ const ChatBox = () => {
               </div>
             )}
           </ul>
-        </div>
+        </main>
         {renderFileStatus()}
         <footer className="border-t bg-[#4e4e4e] backdrop-blur-xl border-[#262626] p-1 sticky bottom-0">
           {file && renderFilePreview()}
