@@ -19,9 +19,6 @@ import useNetworkSpeed from "../../utils/useNetworkSpeed";
 import { SlOptionsVertical } from "react-icons/sl";
 import { MessageLoading } from "../../utils/MessageLoading";
 
-const placeholder =
-  "https://www.lightsong.net/wp-content/uploads/2020/12/blank-profile-circle.png";
-
 const ChatBox = () => {
   const networkStatus = useNetworkSpeed();
   const { roomId } = useParams();
@@ -83,7 +80,7 @@ const ChatBox = () => {
     return () => {
       socket.off("get-messages");
     };
-  }, [roomId,messages]);
+  }, [roomId, messages]);
 
   useEffect(() => {
     const socket = socketRef.current;
@@ -379,12 +376,13 @@ const ChatBox = () => {
                     } px-6 py-1 mb-1 rounded-md relative`}
                   >
                     {renderMessageContent(msg)}
-                    <p className="text-[10px] text-white text-right">
+                    <p className="text-[10px] text-white text-end">
                       <span className="text-[0.6rem]">
-                      {moment(msg?.createdAt).format('h:mm A')}
+                        {moment(msg?.createdAt).format("h:mm A")}
                       </span>
                       <span className="ml-1">
-                        {getStatusClass(msg?.status)}
+                        {msg?.senderId === user?._id &&
+                          getStatusClass(msg?.status)}
                       </span>
                     </p>
                     {msg?.senderId === user?._id && (
